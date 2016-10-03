@@ -87,3 +87,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Using MacOSX
+.DS_Store
+
+# Remove specs
+README.mdown

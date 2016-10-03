@@ -1,5 +1,10 @@
 import sqlite3
+import operator
 from datetime import datetime
+
+class CustomerReceivables:
+	def __init__(self, rows):
+		self.rows = sorted(rows, key = operator.attrgetter('for_customer'))
 
 class Receivable:
 	def __init__(self, row):
@@ -25,22 +30,25 @@ class Receivable:
 		self.net_income = self.gross_income - self.back_payment
 		self.for_customer = self.net - self.gross_income
 
-def db_to_row(filename):
-	con = sqlite3.connect('../sql/' + filename + '_000.sqlite3')
-	con.row_factory = sqlite3.Row
-	cur = con.cursor()
-	return [Receivable(row) for row in cur.execute('SELECT id, amount, fee, payment_date FROM receivables')]
-
 def db_to_row(filename, date_str):
 	con = sqlite3.connect('../sql/' + filename + '_000.sqlite3')
 	con.row_factory = sqlite3.Row
 	cur = con.cursor()
-	return [Receivable.by_forward_date(row, date_str) for row in cur.execute('SELECT id, amount, fee, payment_date FROM receivables')]
+	all_rows = [Receivable.by_forward_date(row, date_str) for row in cur.execute('SELECT id, amount, fee, payment_date FROM receivables')]
+	return sorted(all_rows, key=operator.attrgetter('for_customer'))
 
-receivables = db_to_row('30', '2016_08_16')
-for row in receivables:
-	print row.for_customer
 
+def subsetSum(rows, n, sum):
+	solution_arrays [[0 for x in range()]]
+	array = [1] + [0 for x in range(sum)]
+	for row in rows:
+		for num in xrange(sum - row.for_customer, -1, -1):
+			if array[num]:
+				array[num + row.for_customer] += array[num]
+	return array[sum]
+
+
+print subsetSum(db_to_row('30', '2016_08_16'), 30000, 50000)
 
 
 

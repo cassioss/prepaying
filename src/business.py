@@ -29,7 +29,8 @@ class Receivable:
 
 class ReceivableBusiness:
 
-	def __init__(self, thousands, forward_date_str, target, tolerance_rate):
+	def __init__(self, thousands, forward_date_str, target, tolerance_rate, limit=10):
+		self.limit = limit
 		self.forward_date = datetime.strptime(forward_date_str, '%Y_%m_%d')
 		self.dao = ReceivableDao.by_thousands(thousands)
 		self.solutions = []
@@ -54,19 +55,22 @@ class ReceivableBusiness:
 		self.__find_subset(self.sorted_rows, 0, [None for x in range(self.row_count)], 0, target, int(tolerance_rate * target / 2.0))
 
 	# Recursive method for the method above
+	# Target is reduced in every recursive call
 	def __find_subset(self, rows, from_index, stack, stack_len, target, tolerance):
 		if target > self.max_value:
 			return
 
-		if len(self.solutions) is 10:
+		if len(self.solutions) is self.limit:
 			return
 
+		# Gather all values inside the tolerance limit
 		if (-tolerance) <= target <= tolerance:
 			self.solutions.append(stack[0:stack_len])
 			return
 
-		while from_index < len(rows) and rows[from_index].for_customer > target:
-			from_index += 1
+		# Since the rows were ordered, it is meaningless to keep iterating after a small target was reached
+		if from_index < len(rows) and rows[from_index].for_customer > target:
+			return
 
 		while from_index < len(rows) and rows[from_index].for_customer <= target:
 			stack[stack_len] = rows[from_index].id
@@ -86,7 +90,7 @@ class ReceivableBusiness:
 		print("Max profit: $ %.2f" % (best_solution[1] / 100.0))
 		print("Receivable Ids: %s" % sorted(self.solutions[best_solution[0]]))
 		print("Value returned to customer: $ %.2f" % (best_solution[2] / 100.0))
-		print("Distance from target value: $ %.2f\n" % ((self.target - best_solution[2]) / 100.0))
+		print("Distance from target value: $ %.2f\n" % abs((self.target - best_solution[2]) / 100.0))
 
 	def order_solutions(self):
 		self.solution_pairs = []
